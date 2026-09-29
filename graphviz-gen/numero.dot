@@ -1,0 +1,22 @@
+// digito+ ( "." digito+ )?   com erros para "3." e "12abc"
+digraph numero {
+  rankdir=LR;
+  node [shape=circle, fontname="Helvetica"]; edge [fontname="Helvetica"];
+  start [shape=point];
+  q4 [shape=doublecircle, label="q4\nLIT_INT"];
+  q5 [shape=doublecircle, label="q5\nLIT_DOUBLE"];
+  E1 [shape=octagon, style=filled, fillcolor="#f8d0d0", label="ERRO\nnúmero colado\nem letra"];
+  E2 [shape=octagon, style=filled, fillcolor="#f8d0d0", label="ERRO\nponto sem dígito\ndepois (3.)"];
+
+  start -> q0;
+  q0 -> q1 [label="dígito"];
+  q1 -> q1 [label="dígito"];
+  q1 -> q2 [label="."];
+  q1 -> E1 [label="letra"];
+  q1 -> q4 [label="outro / retrai"];
+  q2 -> q3 [label="dígito"];
+  q2 -> E2 [label="outro"];
+  q3 -> q3 [label="dígito"];
+  q3 -> E1 [label="letra"];
+  q3 -> q5 [label="outro / retrai"];
+}

@@ -1,0 +1,14 @@
+// letra ( letra | digito | "_" )*   -- depois consulta a tabela de palavras reservadas (Seção 6)
+digraph identificador {
+  rankdir=LR;
+  node [shape=circle, fontname="Helvetica"]; edge [fontname="Helvetica"];
+  start [shape=point];
+  q2 [shape=doublecircle, label="q2\nID"];
+  tabela [shape=note, label="tabela de palavras reservadas:\nlexema ∈ tabela → PALAVRA_RESERVADA\nsenão → IDENTIFICADOR"];
+
+  start -> q0;
+  q0 -> q1 [label="letra"];
+  q1 -> q1 [label="letra | dígito | _"];
+  q1 -> q2 [label="outro / retrai"];
+  q2 -> tabela [style=dashed, arrowhead=none];
+}

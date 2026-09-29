@@ -1,0 +1,22 @@
+// ' ( [^'\\\n\r] | \' | \\ | \n | \t ) '
+digraph char {
+  rankdir=LR;
+  node [shape=circle, fontname="Helvetica"]; edge [fontname="Helvetica"];
+  start [shape=point];
+  q4 [shape=doublecircle, label="q4\nCHAR"];
+  E1 [shape=octagon, style=filled, fillcolor="#f8d0d0", label="ERRO\nchar vazio ('')"];
+  E2 [shape=octagon, style=filled, fillcolor="#f8d0d0", label="ERRO\nescape desconhecido"];
+  E3 [shape=octagon, style=filled, fillcolor="#f8d0d0", label="ERRO\nmais de 1 caractere\nou não fechado"];
+  E4 [shape=octagon, style=filled, fillcolor="#f8d0d0", label="ERRO\nchar não fechado\n(fim de linha ou EOF)"];
+
+  start -> q0;
+  q0 -> q1 [label="'"];
+  q1 -> q3 [label="qualquer exceto\n' \\ LF CR"];
+  q1 -> q2 [label="\\"];
+  q1 -> E1 [label="'"];
+  q1 -> E4 [label="LF | CR | EOF"];
+  q2 -> q3 [label="' \\ n t"];
+  q2 -> E2 [label="outro"];
+  q3 -> q4 [label="'"];
+  q3 -> E3 [label="outro"];
+}

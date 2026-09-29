@@ -1,0 +1,27 @@
+// Operadores (exceto "/", que está em comentario.dot). Maximal munch: 2º caractere decide.
+digraph operador {
+  rankdir=LR;
+  node [shape=circle, fontname="Helvetica"]; edge [fontname="Helvetica"];
+  start [shape=point];
+  node [shape=doublecircle];
+  ASSIGN [label="="]; EQEQ [label="=="];
+  LT [label="<"]; LE [label="<="];
+  GT [label=">"]; GE [label=">="];
+  NOT [label="!"]; NE [label="!="];
+  AND [label="&&"]; OR [label="||"];
+  PLUS [label="+"]; MINUS [label="-"]; STAR [label="*"];
+  node [shape=octagon, style=filled, fillcolor="#f8d0d0"];
+  E_AMP [label="ERRO\n& isolado"]; E_BAR [label="ERRO\n| isolado"];
+  node [shape=circle, style=solid, fillcolor=white];
+
+  start -> q0;
+  q0 -> qEq  [label="="];   qEq  -> EQEQ [label="="]; qEq  -> ASSIGN [label="outro / retrai"];
+  q0 -> qLt  [label="<"];   qLt  -> LE   [label="="]; qLt  -> LT     [label="outro / retrai"];
+  q0 -> qGt  [label=">"];   qGt  -> GE   [label="="]; qGt  -> GT     [label="outro / retrai"];
+  q0 -> qNot [label="!"];   qNot -> NE   [label="="]; qNot -> NOT    [label="outro / retrai"];
+  q0 -> qAmp [label="&"];   qAmp -> AND  [label="&"]; qAmp -> E_AMP  [label="outro"];
+  q0 -> qBar [label="|"];   qBar -> OR   [label="|"]; qBar -> E_BAR  [label="outro"];
+  q0 -> PLUS  [label="+"];
+  q0 -> MINUS [label="-"];
+  q0 -> STAR  [label="*"];
+}

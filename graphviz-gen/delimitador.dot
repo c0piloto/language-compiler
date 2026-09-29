@@ -1,0 +1,8 @@
+digraph delimitador {
+  rankdir=LR;
+  node [shape=circle, fontname="Helvetica"]; edge [fontname="Helvetica"];
+  start [shape=point];
+  q1 [shape=doublecircle, label="q1\nDELIMITADOR"];
+  start -> q0;
+  q0 -> q1 [label="( ) { } , ;"];
+}

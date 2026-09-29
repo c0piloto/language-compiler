@@ -1,0 +1,29 @@
+// Visão geral: estado inicial do scanner despacha pelo 1º caractere para o AFD de cada categoria.
+digraph scanner {
+  rankdir=LR;
+  node [fontname="Helvetica"]; edge [fontname="Helvetica"];
+  start [shape=point];
+  q0 [shape=circle, label="q0"];
+  start -> q0;
+
+  node [shape=box, style="rounded,filled", fillcolor="#e8f0fe"];
+  IDENT   [label="identificador.dot\n(IDENTIFICADOR ou PALAVRA_RESERVADA)"];
+  NUM     [label="numero.dot\n(LIT_INT ou LIT_DOUBLE)"];
+  STR     [label="string.dot"];
+  CHR     [label="char.dot"];
+  OPS     [label="operador.dot"];
+  SLASH   [label="comentario.dot\n(/, // e /* */)"];
+  DELIM   [label="delimitador.dot"];
+
+  ERRO [shape=octagon, style=filled, fillcolor="#f8d0d0", label="ERRO\ncaractere fora do alfabeto"];
+
+  q0 -> IDENT [label="letra"];
+  q0 -> NUM   [label="dígito"];
+  q0 -> STR   [label="\""];
+  q0 -> CHR   [label="'"];
+  q0 -> OPS   [label="= < > ! & | + - *"];
+  q0 -> SLASH [label="/"];
+  q0 -> DELIM [label="( ) { } , ;"];
+  q0 -> q0    [label="espaço, tab, LF, CR\n(ignorados)"];
+  q0 -> ERRO  [label="outro"];
+}

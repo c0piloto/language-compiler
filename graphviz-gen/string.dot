@@ -1,0 +1,18 @@
+// " ( [^"\\\n\r] | \" | \\ | \n | \t )* "
+digraph string {
+  rankdir=LR;
+  node [shape=circle, fontname="Helvetica"]; edge [fontname="Helvetica"];
+  start [shape=point];
+  q3 [shape=doublecircle, label="q3\nSTRING"];
+  E1 [shape=octagon, style=filled, fillcolor="#f8d0d0", label="ERRO\nstring não fechada\n(fim de linha ou EOF)"];
+  E2 [shape=octagon, style=filled, fillcolor="#f8d0d0", label="ERRO\nescape desconhecido"];
+
+  start -> q0;
+  q0 -> q1 [label="\""];
+  q1 -> q1 [label="qualquer exceto\n\" \\ LF CR"];
+  q1 -> q2 [label="\\"];
+  q2 -> q1 [label="\" \\ n t"];
+  q2 -> E2 [label="outro"];
+  q1 -> q3 [label="\""];
+  q1 -> E1 [label="LF | CR | EOF"];
+}

@@ -1,0 +1,29 @@
+// "/" (divisão), "//" comentário de linha, "/* ... */" comentário de bloco (não aninhado)
+digraph comentario {
+  rankdir=LR;
+  node [shape=circle, fontname="Helvetica"]; edge [fontname="Helvetica"];
+  start [shape=point];
+  DIV  [shape=doublecircle, label="DIV\n(/)"];
+  FIML [shape=doublecircle, label="fim do comentário\nde linha\n(ignorado)"];
+  FIMB [shape=doublecircle, label="fim do comentário\nde bloco\n(ignorado)"];
+  E [shape=octagon, style=filled, fillcolor="#f8d0d0", label="ERRO\ncomentário de bloco\nnão fechado (EOF)"];
+
+  start -> q0;
+  q0 -> s1 [label="/"];
+  s1 -> DIV  [label="outro / retrai"];
+
+  // comentário de linha
+  s1 -> L [label="/"];
+  L -> L    [label="qualquer exceto\nLF CR"];
+  L -> FIML [label="LF | CR | EOF\n/ retrai"];
+
+  // comentário de bloco
+  s1 -> B [label="*"];
+  B  -> B  [label="qualquer exceto *"];
+  B  -> B2 [label="*"];
+  B2 -> B2 [label="*"];
+  B2 -> B  [label="qualquer exceto * /"];
+  B2 -> FIMB [label="/"];
+  B  -> E [label="EOF"];
+  B2 -> E [label="EOF"];
+}
