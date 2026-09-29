@@ -117,3 +117,35 @@ O *scanner* reporta cada erro com **linha e coluna** e uma mensagem, e continua 
 * char vazio (`''`), char com mais de um caractere ou char não fechado;
 * comentário de bloco não fechado até o EOF;
 * número malformado (`3.`, `12abc`).
+
+### 00_scanner
+
+![AFD 00_scanner](graphviz-gen/00_scanner.svg)
+
+### char
+
+![AFD char](graphviz-gen/char.svg)
+
+### comentario
+
+![AFD comentario](graphviz-gen/comentario.svg)
+
+### delimitador
+
+![AFD delimitador](graphviz-gen/delimitador.svg)
+
+### identificador
+
+![AFD identificador](graphviz-gen/identificador.svg)
+
+### numero
+
+![AFD numero](graphviz-gen/numero.svg)
+
+### operador
+
+![AFD operador](graphviz-gen/operador.svg)
+
+### string
+
+![AFD string](graphviz-gen/string.svg)
