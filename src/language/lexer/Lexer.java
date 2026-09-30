@@ -2,6 +2,7 @@ package language.lexer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.lang.StringBuilder;
 
 public final class Lexer {
   private final String src;
@@ -59,11 +60,51 @@ public final class Lexer {
   }
 
   private Token readIdentifier() {
-    throw new UnsupportedOperationException("TODO identificador.dot");
+    StringBuilder lexema = new StringBuilder();
+    lexema.append(advance());
+    int state = 1;
+
+    while (true) {
+      char c = peek();
+      switch (state) {
+        case 1 -> {
+          if (isLetter(c) || isDigit(c) || c == '_') {
+            lexema.append(advance());
+          } else {
+            state = 2;
+          }
+        }
+        case 2 -> {
+          String s = lexema.toString();
+          return token(TokenType.identifierType(s), s);
+        }
+      }
+    }
   }
 
   private Token readNumber() {
-    throw new UnsupportedOperationException("TODO numero.dot");
+    StringBuilder lexema = new StringBuilder();
+    lexema.append(advance());
+    int state = 1;
+
+    while (true) {
+      char c = peek();
+      switch (state) {
+        case 1 -> {
+          if (isDigit(c)) {
+            lexema.append(advance());
+          } else if (c == '.') {
+            lexema.append(advance());
+            state = 2;
+          } else if (isLetter(c)) {
+            error("Number followed by letter w/o space!", this.tokLine, this.tokCol);
+          } else {
+            state = 4;
+          }
+        }
+      }
+    }
+
   }
 
   private Token readString() {
@@ -125,7 +166,7 @@ public final class Lexer {
     return new Token(type, lexema, this.tokLine, this.tokCol);
   }
 
-  private void errors(String message, int line, int col) {
+  private void error(String message, int line, int col) {
     errors.add(new LexicalError(message, line, col));
   }
 
