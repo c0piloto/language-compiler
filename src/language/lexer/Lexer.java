@@ -2,7 +2,6 @@ package language.lexer;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.lang.StringBuilder;
 
 public final class Lexer {
   private final String src;
@@ -42,7 +41,7 @@ public final class Lexer {
       } else if (c == '\'') {
         token = readChar();
       } else if (c == '/') {
-        token = readSlash();
+        token = readComment();
       } else if ("=<>!&|+-*".indexOf(c) >= 0) {
         token = readOperator();
       } else if ("(){},;".indexOf(c) >= 0) {
@@ -97,10 +96,34 @@ public final class Lexer {
             lexema.append(advance());
             state = 2;
           } else if (isLetter(c)) {
-            error("Number followed by letter w/o space!", this.tokLine, this.tokCol);
+            return gluedToLetter();
           } else {
             state = 4;
           }
+        }
+        case 2 -> {
+          if (isDigit(c)) {
+            lexema.append(advance());
+            state = 3;
+          } else {
+            error("Dot w/o digit after it. eg.: 3.", this.tokLine, this.tokCol);
+            return null;
+          }
+        }
+        case 3 -> {
+          if (isDigit(c)) {
+            lexema.append(advance());
+          } else if (isLetter(c)) {
+            return gluedToLetter();
+          } else {
+            state = 5;
+          }
+        }
+        case 4 -> {
+          return token(TokenType.LIT_INT, lexema.toString());
+        }
+        case 5 -> {
+          return token(TokenType.LIT_DOUBLE, lexema.toString());
         }
       }
     }
@@ -108,23 +131,214 @@ public final class Lexer {
   }
 
   private Token readString() {
-    throw new UnsupportedOperationException("TODO string.dot");
+    StringBuilder lexema = new StringBuilder();
+    lexema.append(advance());
+    int state = 1;
+
+    while (true) {
+      char c = peek();
+      switch (state) {
+        case 1 -> {
+          if (end() || c == '\n' || c == '\r') {
+            error("Unclosed string (end of line)", this.tokLine, this.tokCol);
+            return null;
+          } else if (c == '"') {
+            lexema.append(advance());
+            state = 3;
+          } else if (c == '\\') {
+            lexema.append(advance());
+            state = 2;
+          } else {
+            lexema.append(advance());
+          }
+        }
+        case 2 -> {
+          if (c == '"' || c == '\\' || c == 'n' || c == 't') {
+            lexema.append(advance());
+          } else {
+            error("Unknown escape sequence", this.tokLine, this.tokCol);
+          }
+          state = 1;
+        }
+        case 3 -> {
+          return token(TokenType.LIT_STRING, lexema.toString());
+        }
+      }
+    }
   }
 
   private Token readChar() {
-    throw new UnsupportedOperationException("TODO char.dot");
+    StringBuilder lexema = new StringBuilder();
+    lexema.append(advance());
+    int state = 1;
+
+    while (true) {
+      char c = peek();
+      boolean lineEnd = end() || c == '\n' || c == '\r';
+
+      switch (state) {
+        case 1 -> {
+          if (c == '\'') {
+            advance();
+            error("Empty character", this.tokLine, this.tokCol);
+            return null;
+          } else if (lineEnd) {
+            error("Unclosed char", this.tokLine, this.tokCol);
+            return null;
+          } else if (c == '\\') {
+            lexema.append(advance());
+            state = 2;
+          } else {
+            lexema.append(advance());
+            state = 3;
+          }
+        }
+        case 2 -> {
+          if (c == '\'' || c == 'n' || c == 't' || c == '\\') {
+            lexema.append(advance());
+          } else if (!lineEnd) {
+            error("Unknown escape sequence", this.tokLine, this.tokCol);
+            lexema.append(advance());
+          }
+          state = 3;
+        }
+        case 3 -> {
+          if (c == '\'') {
+            lexema.append(advance());
+            state = 4;
+          } else {
+            if (lineEnd) {
+              error("Unclosed char", this.tokLine, this.tokCol);
+            } else {
+              error("Char with more than one character", this.tokLine, this.tokCol);
+              while (!end() && peek() != '\'' && peek() != '\n' && peek() != '\r') {
+                advance();
+              }
+              if (peek() == '\'') {
+                advance();
+              }
+            }
+            return null;
+          }
+        }
+        case 4 -> {
+          return token(TokenType.LIT_CHAR, lexema.toString());
+        }
+      }
+    }
   }
 
-  private Token readSlash() {
-    throw new UnsupportedOperationException("TODO comentario.dot");
+  private Token readComment() {
+    advance();
+    int state = 1;
+
+    while (true) {
+      char c = peek();
+      boolean lineEnd = end() || c == '\n' || c == '\r';
+
+      switch (state) {
+        case 1 -> {
+          if (c == '/') {
+            advance();
+            state = 2;
+          } else if (c == '*') {
+            advance();
+            state = 3;
+          } else {
+            return token(TokenType.SLASH, "/");
+          }
+        }
+        case 2 -> {
+          if (lineEnd) {
+            return null;
+          }
+          advance();
+        }
+        case 3 -> {
+          if (end()) {
+            error("Comment block not closed", this.tokLine, this.tokCol);
+            return null;
+          } else if (c == '*') {
+            advance();
+            state = 4;
+          } else {
+            advance();
+          }
+        }
+        case 4 -> {
+          if (end()) {
+            error("Comment block not closed", this.tokLine, this.tokCol);
+            return null;
+          } else if (c == '/') {
+            return token(TokenType.SLASH, "/");
+          } else {
+            advance();
+            state = 3;
+          }
+        }
+      }
+    }
   }
 
   private Token readOperator() {
-    throw new UnsupportedOperationException("TODO operador.dot");
+    char c = advance();
+
+    switch (c) {
+      case '=' -> {
+        return match('=') ? token(TokenType.EQ, "==") : token(TokenType.ASSIGN, "=");
+      }
+      case '<' -> {
+        return match('=') ? token(TokenType.LE, "<=") : token(TokenType.LT, "<");
+      }
+      case '>' -> {
+        return match('=') ? token(TokenType.GE, ">=") : token(TokenType.GT, ">");
+      }
+      case '!' -> {
+        return match('=') ? token(TokenType.NE, "!=") : token(TokenType.NOT, "!");
+      }
+      case '&' -> {
+        if (match('&')) {
+          return token(TokenType.AND, "&&");
+        } else {
+          error("Isolated '&' (expected '&&')", this.tokLine, this.tokCol);
+          return null;
+        }
+      }
+      case '|' -> {
+        if (match('|')) {
+          return token(TokenType.OR, "||");
+        } else {
+          error("Isolated '|' (expected '||')", this.tokLine, this.tokCol);
+          return null;
+        }
+      }
+      case '+' -> {
+        return token(TokenType.PLUS, "+");
+      }
+      case '-' -> {
+        return token(TokenType.MINUS, "-");
+      }
+      case '*' -> {
+        return token(TokenType.STAR, "*");
+      }
+      default -> throw new IllegalStateException("readOperator called with '" + c + "'");
+    }
   }
 
   private Token readDelimiter() {
-    throw new UnsupportedOperationException("TODO delimitador.dot");
+    char c = advance();
+
+    TokenType token = switch (c) {
+      case '(' -> TokenType.LPAREN;
+      case ')' -> TokenType.RPAREN;
+      case '{' -> TokenType.LBRACE;
+      case '}' -> TokenType.RBRACE;
+      case ',' -> TokenType.COMMA;
+      case ';' -> TokenType.SEMICOLON;
+      default -> throw new IllegalStateException("readDelimiter called with '" + c + "'");
+    };
+
+    return token(token, String.valueOf(c));
   }
 
   private void ignoreSpaces() {
@@ -140,6 +354,14 @@ public final class Lexer {
 
   private boolean end() {
     return pos >= src.length();
+  }
+
+  private Token gluedToLetter() {
+    error("Number followed by letter w/o space!", this.tokLine, this.tokCol);
+    while (isLetter(peek()) || isDigit(peek()) || peek() == '_') {
+      advance();
+    }
+    return null;
   }
 
   private char peek() {
@@ -160,6 +382,15 @@ public final class Lexer {
       this.col++;
     }
     return c;
+  }
+
+  private boolean match(char expected) {
+    if (peek() == expected) {
+      advance();
+      return true;
+    }
+
+    return false;
   }
 
   private Token token(TokenType type, String lexema) {

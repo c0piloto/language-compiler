@@ -1,0 +1,51 @@
+// Programa de teste válido da linguagem
+
+/* Cobre todas as categorias de token:
+   palavras reservadas, identificadores, literais,
+   operadores e delimitadores. */
+
+int fatorial(int n) {
+  if (n <= 1) {
+    return 1;
+  } else {
+    return n * fatorial(n - 1);
+  }
+}
+
+bool ehPar(int numero) {
+  return numero / 2 * 2 == numero;
+}
+
+void imprimir(string mensagem) {
+  return;
+}
+
+double media(double a_1, double b2) {
+  return (a_1 + b2) / 2.0;
+}
+
+int main() {
+  int contador = 0;
+  int total = 007;
+  int If = 1; // If não é palavra reservada (case-sensitive)
+  double taxa_juros = 3.14;
+  bool ativo = True;
+  bool pronto = False;
+  char letra = 'a';
+  char quebra = '\n';
+  char aspas = '\'';
+  string nome = "Flazeiro";
+  string citacao = "Ele disse \"oi\"\tcom tab e \\ barra";
+  string acentos = "não há erro aqui";
+
+  while (contador < 10 && !pronto) {
+    if (contador >= 5 || ativo != False) {
+      total = total + fatorial(contador) - 1;
+    }
+    contador = contador + 1;
+  }
+
+  imprimir(nome);
+  return 0;
+}
+EOF
