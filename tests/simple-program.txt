@@ -34,7 +34,7 @@ int main() {
   char letra = 'a';
   char quebra = '\n';
   char aspas = '\'';
-  string nome = "Flazeiro";
+  string nome = "Linguagem";
   string citacao = "Ele disse \"oi\"\tcom tab e \\ barra";
   string acentos = "não há erro aqui";
 
