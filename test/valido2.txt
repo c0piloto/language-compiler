@@ -1,0 +1,7 @@
+int soma(int a, int b) {
+    return a + b;
+}
+
+void principal() {
+    int resultado = soma(5, 10);
+}

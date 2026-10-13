@@ -22,8 +22,8 @@ public enum TokenType {
   KW_IF("if"),
   KW_ELSE("else"),
   KW_WHILE("while"),
-  KW_TRUE("true"),
-  KW_FALSE("false"),
+  KW_TRUE("True"),
+  KW_FALSE("False"),
 
   // Operators
   ASSIGN("="),

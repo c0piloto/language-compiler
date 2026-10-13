@@ -228,55 +228,56 @@ public final class Lexer {
     }
   }
 
-  private Token readComment() {
-    advance();
-    int state = 1;
+private Token readComment() {
+    advance(); // consome o primeiro '/'
+    char next = peek();
 
-    while (true) {
-      char c = peek();
-      boolean lineEnd = end() || c == '\n' || c == '\r';
+    if (next == '/') {
+      // Comentário de linha //
+      advance();
+      while (!end() && peek() != '\n' && peek() != '\r') {
+        advance();
+      }
+      return null;
+    } else if (next == '*') {
+      // Comentário de bloco /* ... */
+      advance();
+      int state = 3;
 
-      switch (state) {
-        case 1 -> {
-          if (c == '/') {
-            advance();
-            state = 2;
-          } else if (c == '*') {
-            advance();
-            state = 3;
-          } else {
-            return token(TokenType.SLASH, "/");
-          }
+      while (true) {
+        if (end()) {
+          error("Comment block not closed", this.tokLine, this.tokCol);
+          return null;
         }
-        case 2 -> {
-          if (lineEnd) {
-            return null;
+
+        char c = peek();
+
+        switch (state) {
+          case 3 -> {
+            if (c == '*') {
+              advance();
+              state = 4;
+            } else {
+              advance();
+            }
           }
-          advance();
-        }
-        case 3 -> {
-          if (end()) {
-            error("Comment block not closed", this.tokLine, this.tokCol);
-            return null;
-          } else if (c == '*') {
-            advance();
-            state = 4;
-          } else {
-            advance();
-          }
-        }
-        case 4 -> {
-          if (end()) {
-            error("Comment block not closed", this.tokLine, this.tokCol);
-            return null;
-          } else if (c == '/') {
-            return token(TokenType.SLASH, "/");
-          } else {
-            advance();
-            state = 3;
+          case 4 -> {
+            if (c == '/') {
+              advance(); // Consome o '/' de fechamento
+              return null; // Comentário concluído com sucesso, ignorado
+            } else if (c == '*') {
+              advance(); // Permanece no estado 4 para lidar com múltiplos asteriscos (ex: ***/)
+              state = 4;
+            } else {
+              advance();
+              state = 3; // Volta para dentro do bloco
+            }
           }
         }
       }
+    } else {
+      // É apenas o operador de divisão '/'
+      return token(TokenType.SLASH, "/");
     }
   }
 
@@ -408,4 +409,7 @@ public final class Lexer {
   private static boolean isDigit(char c) {
     return c >= '0' && c <= '9';
   }
+
+  
 }
+

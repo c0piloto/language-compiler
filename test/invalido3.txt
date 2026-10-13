@@ -1,0 +1,5 @@
+void erroParentese() {
+    if (x > 5 {
+        int a = 1;
+    }
+}

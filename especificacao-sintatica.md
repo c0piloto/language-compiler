@@ -112,7 +112,11 @@ São os FOLLOW dos níveis de expressão. Cada nível herda o conjunto do nível
 | `Type` | `T` | `{ID}` |
 | `Block` | `{ { }` | `F ∪ {$, else}` |
 | `StmtList` | `S ∪ {ε}` | `{}}` |
-| `Stmt`, `IdStmt`, `IfStmt`, `ElsePart`, `ElseBody` | `S` · `{=, (}` · `{if}` · `{else, ε}` · `{{, if}` | `F` |
+| `Stmt` | `S` | `F` |
+| `IdStmt` | `{=, (}` | `F` |
+| `IfStmt` | `{if}` | `F` |
+| `ElsePart` | `{else, ε}` | `F` |
+| `ElseBody` | `{{, if}` | `F` |
 | `ReturnVal` | `E ∪ {ε}` | `{;}` |
 | `Expr` / `OrTail` | `E` / `{\|\|, ε}` | `X` |
 | `AndExpr` / `AndTail` | `E` / `{&&, ε}` | `L1` |
