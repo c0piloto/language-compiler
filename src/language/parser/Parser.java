@@ -1,6 +1,8 @@
 package language.parser;
 
+import language.ast.*;
 import language.lexer.Lexer;
+import language.lexer.LexicalError;
 import language.lexer.Token;
 import language.lexer.TokenType;
 
@@ -74,19 +76,54 @@ public final class Parser {
 
   // API
 
-  // true = aceito sem erros; false = rejeitado (ver getErrors()).
-  public boolean parse() {
+  // Devolve a árvore (ou null, se houve qualquer erro léxico ou sintático)
+  // junto com as listas de erros.
+  public ParseResult parse() {
     errors.clear();
-    parseProgram();
+    Program tree = parseProgram();
     if (!at(EOF)) {
       fail(EnumSet.of(EOF));
       synchronize(EnumSet.of(EOF));
     }
-    return errors.isEmpty();
+    List<LexicalError> lexicalErrors = new ArrayList<>(lexer.getErrors());
+    boolean valid = errors.isEmpty() && lexicalErrors.isEmpty();
+    return new ParseResult(valid ? tree : null, new ArrayList<>(errors), lexicalErrors);
+  }
+
+  // Conversões token -> enum da AST (switch sobre TOKEN, não sobre nó)
+
+  private static TypeKind typeOf(TokenType token) {
+    return switch (token) {
+      case KW_INT -> TypeKind.INT;
+      case KW_DOUBLE -> TypeKind.DOUBLE;
+      case KW_BOOL -> TypeKind.BOOL;
+      case KW_CHAR -> TypeKind.CHAR;
+      case KW_STRING -> TypeKind.STRING;
+      case KW_VOID -> TypeKind.VOID;
+      default -> null;
+    };
+  }
+
+  private static Op opOf(TokenType token) {
+    return switch (token) {
+      case OR -> Op.OR;
+      case AND -> Op.AND;
+      case EQ -> Op.EQ;
+      case NE -> Op.NE;
+      case LT -> Op.LT;
+      case LE -> Op.LE;
+      case GT -> Op.GT;
+      case GE -> Op.GE;
+      case PLUS -> Op.ADD;
+      case MINUS -> Op.SUB;
+      case STAR -> Op.MUL;
+      case SLASH -> Op.DIV;
+      default -> null;
+    };
   }
 
   // Conjuntos FIRST / FOLLOW
-// Helpers para união de conjuntos
+  // Helpers para união de conjuntos
   private static Set<TokenType> union(Set<TokenType> base, TokenType... extra) {
     EnumSet<TokenType> result = EnumSet.copyOf(base);
     Collections.addAll(result, extra);
@@ -127,76 +164,91 @@ public final class Parser {
   private static final Set<TokenType> L6 = union(L5, STAR, SLASH);
 
   // Program -> Decl Program | ε
-  private void parseProgram() {
+  private Program parseProgram() {
+    Token start = token;
+    List<Node> decls = new ArrayList<>();
+    parseDecls(decls);
+    return new Program(decls, start.getLine(), start.getCol());
+  }
+
+  // A recursão Decl Program do CP2, preenchendo a lista
+  private void parseDecls(List<Node> decls) {
     if (inSet(T)) {
-      parseDecl();
-      parseProgram();
+      decls.add(parseDecl());
+      parseDecls(decls);
     } else if (at(EOF)) {
       return;
     } else {
       fail(union(T, EOF));
       synchronize(union(T, EOF));
       if (!at(EOF)) {
-        parseProgram();
+        parseDecls(decls);
       }
     }
   }
 
   // Decl -> Type ID DeclRest
-  private void parseDecl() {
-    parseType();
-    match(IDENTIFIER);
-    parseDeclRest();
+  private Node parseDecl() {
+    Token start = token;
+    TypeKind type = parseType();
+    Token name = match(IDENTIFIER);
+    return parseDeclRest(type, name.getLexema(), start);
   }
 
   // DeclRest -> ( Params ) Block | VarRest ;
-  private void parseDeclRest() {
+  private Node parseDeclRest(TypeKind type, String name, Token start) {
     if (at(LPAREN)) {
       match(LPAREN);
-      parseParams();
+      List<Param> params = parseParams();
       match(RPAREN);
-      parseBlock();
+      Block body = parseBlock();
+      return new FuncDecl(type, name, params, body, start.getLine(), start.getCol());
     } else if (at(ASSIGN) || at(SEMICOLON)) {
-      parseVarRest();
+      Expr init = parseVarRest();
       match(SEMICOLON);
+      return new VarDecl(type, name, init, start.getLine(), start.getCol());
     } else {
       fail(EnumSet.of(LPAREN, ASSIGN, SEMICOLON));
       synchronize(union(T, EnumSet.of(SEMICOLON, RBRACE)));
+      return null;
     }
   }
 
-  // VarRest -> = Expr | ε
-  private void parseVarRest() {
+  // VarRest -> = Expr | ε   (null = sem inicializador)
+  private Expr parseVarRest() {
     if (at(ASSIGN)) {
       match(ASSIGN);
-      parseExpr();
+      return parseExpr();
     } else if (at(SEMICOLON)) {
-      return;
+      return null;
     } else {
       fail(EnumSet.of(ASSIGN, SEMICOLON));
       synchronize(EnumSet.of(SEMICOLON));
+      return null;
     }
   }
 
   // Params -> Param ParamTail | ε
-  private void parseParams() {
+  private List<Param> parseParams() {
+    List<Param> params = new ArrayList<>();
     if (inSet(T)) {
-      parseParam();
-      parseParamTail();
+      params.add(parseParam());
+      parseParamTail(params);
     } else if (at(RPAREN)) {
-      return;
+      // ε: lista vazia
     } else {
       fail(union(T, RPAREN));
       synchronize(EnumSet.of(RPAREN));
     }
+    return params;
   }
 
   // ParamTail -> , Param ParamTail | ε
-  private void parseParamTail() {
+  private void parseParamTail(List<Param> params) {
     if (at(COMMA)) {
       match(COMMA);
-      parseParam();
-      parseParamTail();
+      params.add(parseParam());
+      parseParamTail(params);
     } else if (at(RPAREN)) {
       return;
     } else {
@@ -206,336 +258,405 @@ public final class Parser {
   }
 
   // Param -> Type ID
-  private void parseParam() {
-    parseType();
-    match(IDENTIFIER);
+  private Param parseParam() {
+    Token start = token;
+    TypeKind type = parseType();
+    Token name = match(IDENTIFIER);
+    return new Param(type, name.getLexema(), start.getLine(), start.getCol());
   }
 
   // Type -> int | double | bool | char | string | void
-  private void parseType() {
+  private TypeKind parseType() {
     if (inSet(T)) {
+      TypeKind kind = typeOf(token.getType()); // lê antes de avançar
       advance();
+      return kind;
     } else {
       fail(T);
       synchronize(union(T, IDENTIFIER, SEMICOLON));
+      return null;
     }
   }
 
   // Block -> { StmtList }
-  private void parseBlock() {
+  private Block parseBlock() {
+    Token start = token;
     match(LBRACE);
-    parseStmtList();
+    List<Stmt> stmts = new ArrayList<>();
+    parseStmtList(stmts);
     match(RBRACE);
+    return new Block(stmts, start.getLine(), start.getCol());
   }
 
   // StmtList -> Stmt StmtList | ε
-  private void parseStmtList() {
+  private void parseStmtList(List<Stmt> stmts) {
     if (inSet(S)) {
-      parseStmt();
-      parseStmtList();
+      stmts.add(parseStmt());
+      parseStmtList(stmts);
     } else if (at(RBRACE)) {
       return;
     } else {
       fail(union(S, RBRACE));
       synchronize(F);
       if (!at(RBRACE) && inSet(S)) {
-        parseStmtList();
+        parseStmtList(stmts);
       }
     }
   }
 
   // Stmt -> Type ID VarRest ; | ID IdStmt | IfStmt | Block
   // | while ( Expr ) Block | return ReturnVal ;
-  private void parseStmt() {
+  private Stmt parseStmt() {
+    Token start = token;
+
     if (inSet(T)) {
-      parseType();
-      match(IDENTIFIER);
-      parseVarRest();
+      TypeKind type = parseType();
+      Token name = match(IDENTIFIER);
+      Expr init = parseVarRest();
       match(SEMICOLON);
-      return;
+      return new VarDecl(type, name.getLexema(), init, start.getLine(), start.getCol());
     }
 
     switch (token.getType()) {
       case IDENTIFIER -> {
-        match(IDENTIFIER);
-        parseIdStmt();
+        Token id = match(IDENTIFIER);
+        return parseIdStmt(id);
       }
-      case KW_IF -> parseIfStmt();
-      case LBRACE -> parseBlock();
+      case KW_IF -> {
+        return parseIfStmt();
+      }
+      case LBRACE -> {
+        return parseBlock();
+      }
       case KW_WHILE -> {
         match(KW_WHILE);
         match(LPAREN);
-        parseExpr();
+        Expr cond = parseExpr();
         match(RPAREN);
-        parseBlock();
+        Block body = parseBlock();
+        return new While(cond, body, start.getLine(), start.getCol());
       }
       case KW_RETURN -> {
         match(KW_RETURN);
-        parseReturnVal();
+        Expr value = parseReturnVal();
         match(SEMICOLON);
+        return new Return(value, start.getLine(), start.getCol());
       }
       default -> {
         fail(S);
         synchronize(F);
+        return null;
       }
     }
   }
 
-  // IdStmt -> = Expr ; | ( Args ) ;
-  private void parseIdStmt() {
+  // IdStmt -> = Expr ; | ( Args ) ;   (o ID já foi consumido por parseStmt)
+  private Stmt parseIdStmt(Token id) {
+    Id target = new Id(id.getLexema(), id.getLine(), id.getCol());
+
     switch (token.getType()) {
       case ASSIGN -> {
         match(ASSIGN);
-        parseExpr();
+        Expr value = parseExpr();
         match(SEMICOLON);
+        return new Assign(target, value, id.getLine(), id.getCol());
       }
       case LPAREN -> {
         match(LPAREN);
-        parseArgs();
+        List<Expr> args = parseArgs();
         match(RPAREN);
         match(SEMICOLON);
+        Call call = new Call(target, args, id.getLine(), id.getCol());
+        return new CallStmt(call, id.getLine(), id.getCol());
       }
       default -> {
         fail(EnumSet.of(ASSIGN, LPAREN));
         synchronize(EnumSet.of(SEMICOLON));
+        return null;
       }
     }
   }
 
   // IfStmt -> if ( Expr ) Block ElsePart
-  private void parseIfStmt() {
+  private If parseIfStmt() {
+    Token start = token;
     match(KW_IF);
     match(LPAREN);
-    parseExpr();
+    Expr cond = parseExpr();
     match(RPAREN);
-    parseBlock();
-    parseElsePart();
+    Block thenBranch = parseBlock();
+    Stmt elseBranch = parseElsePart();
+    return new If(cond, thenBranch, elseBranch, start.getLine(), start.getCol());
   }
 
-  // ElsePart -> else ElseBody | ε
-  private void parseElsePart() {
+  // ElsePart -> else ElseBody | ε   (null = sem else)
+  private Stmt parseElsePart() {
     if (at(KW_ELSE)) {
       match(KW_ELSE);
-      parseElseBody();
+      return parseElseBody();
     } else if (inSet(F)) {
-      return;
+      return null;
     } else {
       fail(union(F, KW_ELSE));
       synchronize(F);
+      return null;
     }
   }
 
   // ElseBody -> Block | IfStmt
-  private void parseElseBody() {
+  private Stmt parseElseBody() {
     if (at(LBRACE)) {
-      parseBlock();
+      return parseBlock();
     } else if (at(KW_IF)) {
-      parseIfStmt();
+      return parseIfStmt();
     } else {
       fail(EnumSet.of(LBRACE, KW_IF));
       synchronize(F);
+      return null;
     }
   }
 
-  // ReturnVal -> Expr | ε
-  private void parseReturnVal() {
+  // ReturnVal -> Expr | ε   (null = return sem valor)
+  private Expr parseReturnVal() {
     if (inSet(E)) {
-      parseExpr();
+      return parseExpr();
     } else if (at(SEMICOLON)) {
-      return;
+      return null;
     } else {
       fail(union(E, SEMICOLON));
       synchronize(EnumSet.of(SEMICOLON));
+      return null;
     }
   }
 
   // Expr -> AndExpr OrTail
-  private void parseExpr() {
-    parseAndExpr();
-    parseOrTail();
+  private Expr parseExpr() {
+    return parseOrTail(parseAndExpr());
   }
 
   // OrTail -> || AndExpr OrTail | ε
-  private void parseOrTail() {
+  private Expr parseOrTail(Expr left) {
     if (at(OR)) {
-      match(OR);
-      parseAndExpr();
-      parseOrTail();
+      advance();
+      Expr right = parseAndExpr();
+      return parseOrTail(new Bin(Op.OR, left, right));
     } else if (inSet(X)) {
-      return;
+      return left;
     } else {
       fail(union(X, OR));
       synchronize(X);
+      return left;
     }
   }
 
   // AndExpr -> EqExpr AndTail
-  private void parseAndExpr() {
-    parseEqExpr();
-    parseAndTail();
+  private Expr parseAndExpr() {
+    return parseAndTail(parseEqExpr());
   }
 
   // AndTail -> && EqExpr AndTail | ε
-  private void parseAndTail() {
+  private Expr parseAndTail(Expr left) {
     if (at(AND)) {
-      match(AND);
-      parseEqExpr();
-      parseAndTail();
+      advance();
+      Expr right = parseEqExpr();
+      return parseAndTail(new Bin(Op.AND, left, right));
     } else if (inSet(L1)) {
-      return;
+      return left;
     } else {
       fail(union(L1, AND));
       synchronize(L1);
+      return left;
     }
   }
 
   // EqExpr -> RelExpr EqTail
-  private void parseEqExpr() {
-    parseRelExpr();
-    parseEqTail();
+  private Expr parseEqExpr() {
+    return parseEqTail(parseRelExpr());
   }
 
   // EqTail -> == RelExpr EqTail | != RelExpr EqTail | ε
-  private void parseEqTail() {
+  private Expr parseEqTail(Expr left) {
     if (at(EQ) || at(NE)) {
+      Token op = token;
       advance();
-      parseRelExpr();
-      parseEqTail();
+      Expr right = parseRelExpr();
+      return parseEqTail(new Bin(opOf(op.getType()), left, right));
     } else if (inSet(L2)) {
-      return;
+      return left;
     } else {
       fail(union(L2, EQ, NE));
       synchronize(L2);
+      return left;
     }
   }
 
   // RelExpr -> AddExpr RelTail
-  private void parseRelExpr() {
-    parseAddExpr();
-    parseRelTail();
+  private Expr parseRelExpr() {
+    return parseRelTail(parseAddExpr());
   }
 
   // RelTail -> < AddExpr RelTail | <= AddExpr RelTail
   // | > AddExpr RelTail | >= AddExpr RelTail | ε
-  private void parseRelTail() {
+  private Expr parseRelTail(Expr left) {
     if (at(LT) || at(LE) || at(GT) || at(GE)) {
+      Token op = token;
       advance();
-      parseAddExpr();
-      parseRelTail();
+      Expr right = parseAddExpr();
+      return parseRelTail(new Bin(opOf(op.getType()), left, right));
     } else if (inSet(L3)) {
-      return;
+      return left;
     } else {
       fail(union(L3, LT, LE, GT, GE));
       synchronize(L3);
+      return left;
     }
   }
 
   // AddExpr -> MulExpr AddTail
-  private void parseAddExpr() {
-    parseMulExpr();
-    parseAddTail();
+  private Expr parseAddExpr() {
+    return parseAddTail(parseMulExpr());
   }
 
   // AddTail -> + MulExpr AddTail | - MulExpr AddTail | ε
-  private void parseAddTail() {
+  private Expr parseAddTail(Expr left) {
     if (at(PLUS) || at(MINUS)) {
+      Token op = token;
       advance();
-      parseMulExpr();
-      parseAddTail();
+      Expr right = parseMulExpr();
+      return parseAddTail(new Bin(opOf(op.getType()), left, right));
     } else if (inSet(L4)) {
-      return;
+      return left;
     } else {
       fail(union(L4, PLUS, MINUS));
       synchronize(L4);
+      return left;
     }
   }
 
   // MulExpr -> Unary MulTail
-  private void parseMulExpr() {
-    parseUnary();
-    parseMulTail();
+  private Expr parseMulExpr() {
+    return parseMulTail(parseUnary());
   }
 
   // MulTail -> * Unary MulTail | / Unary MulTail | ε
-  private void parseMulTail() {
+  private Expr parseMulTail(Expr left) {
     if (at(STAR) || at(SLASH)) {
+      Token op = token;
       advance();
-      parseUnary();
-      parseMulTail();
+      Expr right = parseUnary();
+      return parseMulTail(new Bin(opOf(op.getType()), left, right));
     } else if (inSet(L5)) {
-      return;
+      return left;
     } else {
       fail(union(L5, STAR, SLASH));
       synchronize(L5);
+      return left;
     }
   }
 
   // Unary -> ! Unary | - Unary | Primary
-  private void parseUnary() {
+  private Expr parseUnary() {
     if (at(NOT) || at(MINUS)) {
+      Token op = token;
       advance();
-      parseUnary();
+      Expr operand = parseUnary();
+      Op kind = (op.getType() == NOT) ? Op.NOT : Op.NEG;
+      return new Unary(kind, operand, op.getLine(), op.getCol());
     } else if (inSet(FIRST_PRIMARY)) {
-      parsePrimary();
+      return parsePrimary();
     } else {
       fail(E);
       synchronize(L6);
+      return null;
     }
   }
 
   // Primary -> NUM | STR_LIT | CHAR_LIT | True | False | ( Expr ) | ID PrimaryRest
-  private void parsePrimary() {
-    switch (token.getType()) {
-      case LIT_INT, LIT_DOUBLE, LIT_STRING, LIT_CHAR, KW_TRUE, KW_FALSE -> advance();
+  private Expr parsePrimary() {
+    Token t = token;
+
+    switch (t.getType()) {
+      case LIT_INT -> {
+        advance();
+        return new IntLit(t.getLexema(), t.getLine(), t.getCol());
+      }
+      case LIT_DOUBLE -> {
+        advance();
+        return new DoubleLit(t.getLexema(), t.getLine(), t.getCol());
+      }
+      case LIT_STRING -> {
+        advance();
+        return new StringLit(t.getLexema(), t.getLine(), t.getCol());
+      }
+      case LIT_CHAR -> {
+        advance();
+        return new CharLit(t.getLexema(), t.getLine(), t.getCol());
+      }
+      case KW_TRUE -> {
+        advance();
+        return new BoolLit(true, t.getLine(), t.getCol());
+      }
+      case KW_FALSE -> {
+        advance();
+        return new BoolLit(false, t.getLine(), t.getCol());
+      }
       case LPAREN -> {
         match(LPAREN);
-        parseExpr();
+        Expr inner = parseExpr();
         match(RPAREN);
+        return inner; // parênteses não viram nó
       }
       case IDENTIFIER -> {
-        match(IDENTIFIER);
-        parsePrimaryRest();
+        Token id = match(IDENTIFIER);
+        return parsePrimaryRest(id);
       }
       default -> {
         fail(FIRST_PRIMARY);
         synchronize(L6);
+        return null;
       }
     }
   }
 
-  // PrimaryRest -> ( Args ) | ε
-  private void parsePrimaryRest() {
+  // PrimaryRest -> ( Args ) | ε   (o ID já foi consumido por parsePrimary)
+  private Expr parsePrimaryRest(Token id) {
+    Id name = new Id(id.getLexema(), id.getLine(), id.getCol());
+
     if (at(LPAREN)) {
       match(LPAREN);
-      parseArgs();
+      List<Expr> args = parseArgs();
       match(RPAREN);
+      return new Call(name, args, id.getLine(), id.getCol());
     } else if (inSet(L6)) {
-      return;
+      return name;
     } else {
       fail(union(L6, LPAREN));
       synchronize(L6);
+      return name;
     }
   }
 
   // Args -> Expr ArgTail | ε
-  private void parseArgs() {
+  private List<Expr> parseArgs() {
+    List<Expr> args = new ArrayList<>();
     if (inSet(E)) {
-      parseExpr();
-      parseArgTail();
+      args.add(parseExpr());
+      parseArgTail(args);
     } else if (at(RPAREN)) {
-      return;
+      // ε: lista vazia
     } else {
       fail(union(E, RPAREN));
       synchronize(EnumSet.of(RPAREN, COMMA));
     }
+    return args;
   }
 
   // ArgTail -> , Expr ArgTail | ε
-  private void parseArgTail() {
+  private void parseArgTail(List<Expr> args) {
     if (at(COMMA)) {
       match(COMMA);
-      parseExpr();
-      parseArgTail();
+      args.add(parseExpr());
+      parseArgTail(args);
     } else if (at(RPAREN)) {
       return;
     } else {
@@ -543,10 +664,4 @@ public final class Parser {
       synchronize(EnumSet.of(RPAREN));
     }
   }
-  public boolean parseComplete() {
-    boolean syntaxValid = parse();
-    return syntaxValid && lexer.getErrors().isEmpty();
-  }
-
-  
 }
