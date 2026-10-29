@@ -6,6 +6,7 @@ public final class VarDecl extends Stmt {
   private TypeKind type;
   private String name;
   private Expr init;
+  // Mais tarde: private Symbol symbol;
 
   public VarDecl(TypeKind type, String name, Expr init, int line, int col) {
     super(line, col);
