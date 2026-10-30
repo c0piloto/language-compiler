@@ -3,17 +3,17 @@ package language.ast;
 import language.visitor.Visitor;
 
 public final class Unary extends Expr {
-  private final Op op;        // Op.NOT ou Op.NEG
+  private final Op operator;        // Op.NOT ou Op.NEG
   private final Expr operand;
 
   public Unary(Op op, Expr operand, int line, int col) {
     super(line, col);
-    this.op = op;
+    this.operator = op;
     this.operand = operand;
   }
 
-  public Op getOp() {
-    return this.op;
+  public Op getOperator() {
+    return this.operator;
   }
 
   public Expr getOperand() {

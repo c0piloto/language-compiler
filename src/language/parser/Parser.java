@@ -1,10 +1,7 @@
 package language.parser;
 
 import language.ast.*;
-import language.lexer.Lexer;
-import language.lexer.LexicalError;
-import language.lexer.Token;
-import language.lexer.TokenType;
+import language.lexer.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -172,7 +169,7 @@ public final class Parser {
   }
 
   // A recursão Decl Program do CP2, preenchendo a lista
-  private void parseDecls(List<Node> decls) {
+  private Node parseDecls(List<Node> decls) {
     if (inSet(T)) {
       decls.add(parseDecl());
       parseDecls(decls);
