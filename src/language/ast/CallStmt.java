@@ -16,6 +16,6 @@ public final class CallStmt extends Stmt {
 
   @Override
   public <T> T accept(Visitor<T> visitor) {
-    return visitor.visitCallStmt();
+    return visitor.visitCallStmt(this);
   }
 }

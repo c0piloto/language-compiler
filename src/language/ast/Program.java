@@ -5,11 +5,11 @@ import java.util.List;
 import language.visitor.Visitor;
 
 public final class Program extends Node {
-  private List<Node> decls;
+  private final List<Node> decls;
 
-  public Program(Node declaration, int line, int col) {
+  public Program(List<Node> decls, int line, int col) {
     super(line, col);
-    this.decls.add(declaration);
+    this.decls = decls;
   }
 
   public List<Node> getDeclarations() {

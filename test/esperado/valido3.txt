@@ -1,0 +1,28 @@
+Program
+  FuncDecl(int contagem)
+    Block
+      VarDecl(int i)
+        IntLit(0)
+      While
+        Bin(<)
+          Id(i)
+          IntLit(3)
+        Block
+          If
+            Bin(==)
+              Id(i)
+              IntLit(1)
+            Block
+              Assign
+                Id(i)
+                Bin(+)
+                  Id(i)
+                  IntLit(2)
+            Block
+              Assign
+                Id(i)
+                Bin(+)
+                  Id(i)
+                  IntLit(1)
+      Return
+        Id(i)

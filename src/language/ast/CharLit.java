@@ -16,6 +16,6 @@ public final class CharLit extends Expr {
   
   @Override
   public <T> T accept(Visitor<T> visitor) {
-    return visitor.visitCharLit();
+    return visitor.visitCharLit(this);
   }
 }

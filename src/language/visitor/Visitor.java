@@ -1,5 +1,7 @@
 package language.visitor;
 
+import language.ast.*;
+
 public interface Visitor<T> {
   T visitProgram(Program n);
   T visitVarDecl(VarDecl n);

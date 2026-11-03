@@ -1,0 +1,9 @@
+Program
+  VarDecl(int x)
+    IntLit(10)
+  VarDecl(double y)
+    DoubleLit(3.14)
+  VarDecl(bool ativo)
+    BoolLit(True)
+  VarDecl(string msg)
+    StringLit("Ola mundo")

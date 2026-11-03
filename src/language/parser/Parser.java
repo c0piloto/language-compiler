@@ -169,7 +169,7 @@ public final class Parser {
   }
 
   // A recursão Decl Program do CP2, preenchendo a lista
-  private Node parseDecls(List<Node> decls) {
+  private void parseDecls(List<Node> decls) {
     if (inSet(T)) {
       decls.add(parseDecl());
       parseDecls(decls);

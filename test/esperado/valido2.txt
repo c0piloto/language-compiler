@@ -1,0 +1,16 @@
+Program
+  FuncDecl(int soma)
+    Param(int a)
+    Param(int b)
+    Block
+      Return
+        Bin(+)
+          Id(a)
+          Id(b)
+  FuncDecl(void principal)
+    Block
+      VarDecl(int resultado)
+        Call
+          Id(soma)
+          IntLit(5)
+          IntLit(10)

@@ -1,10 +1,11 @@
 package language;
 
 import language.lexer.Lexer;
-import language.lexer.LexicalError; // Import necessário
-import language.lexer.Token;
-import language.lexer.TokenType;
+import language.lexer.LexicalError;
+import language.parser.ParseResult;
 import language.parser.Parser;
+import language.visitor.AstPrinter;
+import language.visitor.SourcePrinter;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,10 +30,10 @@ public class Main {
     Lexer lexer = new Lexer(code);
     Parser parser = new Parser(lexer);
 
-    boolean syntaxSuccess = parser.parse();
-    
-    List<LexicalError> lexicalErrors = lexer.getErrors();
-    List<String> syntaxErrors = parser.getErrors();
+    ParseResult result = parser.parse();
+
+    List<LexicalError> lexicalErrors = result.lexicalErrors();
+    List<String> syntaxErrors = result.errors();
 
     if (!lexicalErrors.isEmpty()) {
       System.out.println("\n[ERROS LÉXICOS ENCONTRADOS]:");
@@ -44,8 +45,16 @@ public class Main {
       syntaxErrors.forEach(System.out::println);
     }
 
-    if (syntaxSuccess && lexicalErrors.isEmpty() && syntaxErrors.isEmpty()) {
+    if (result.isValid()) {
       System.out.println("\nSTATUS: Programa ACEITO (sintática e lexicamente válido).");
+
+      AstPrinter printer = new AstPrinter();
+      result.tree().accept(printer);
+      System.out.println("\n[AST]:");
+      System.out.print(printer.getOutput());
+
+      System.out.println("\n[CÓDIGO REIMPRESSO]:");
+      System.out.print(result.tree().accept(new SourcePrinter()));
     } else {
       System.out.println("\nSTATUS: Programa REJEITADO.");
     }

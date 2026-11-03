@@ -16,6 +16,6 @@ public final class BoolLit extends Expr {
 
   @Override
   public <T> T accept(Visitor<T> visitor) {
-    return visitor.visitBoolLit();
+    return visitor.visitBoolLit(this);
   }
 }

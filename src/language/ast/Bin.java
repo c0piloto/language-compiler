@@ -6,8 +6,11 @@ public final class Bin extends Expr {
   private Op operator;
   private Expr leftOperand, rightOperand;
 
-  public Bin(Op operator, Expr leftOperand, Expr rightOperand, int line, int col) {
-    super(line, col);
+  // Posição = primeiro token do operando esquerdo (ast-design.md, seção 4).
+  // Se o operando for null (só após um erro sintático, quando a árvore é descartada), usa 0:0.
+  public Bin(Op operator, Expr leftOperand, Expr rightOperand) {
+    super(leftOperand != null ? leftOperand.getLine() : 0,
+        leftOperand != null ? leftOperand.getCol() : 0);
     this.operator = operator;
     this.leftOperand = leftOperand;
     this.rightOperand = rightOperand;

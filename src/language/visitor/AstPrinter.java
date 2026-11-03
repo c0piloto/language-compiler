@@ -1,4 +1,4 @@
-package.language.visitor;
+package language.visitor;
 
 import language.ast.*;
 

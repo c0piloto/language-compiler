@@ -2,7 +2,7 @@ package language.ast;
 
 import java.util.List;
 
-import languange.visitor.Visitor;
+import language.visitor.Visitor;
 
 public final class Call extends Expr {
   private Id callee;
@@ -24,6 +24,6 @@ public final class Call extends Expr {
 
   @Override
   public <T> T accept(Visitor<T> visitor) {
-    return visitor.visitCall();
+    return visitor.visitCall(this);
   }
 }
