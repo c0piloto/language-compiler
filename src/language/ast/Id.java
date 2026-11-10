@@ -1,10 +1,11 @@
 package language.ast;
 
+import language.symbols.Symbol;
 import language.visitor.Visitor;
 
 public final class Id extends Expr {
   private final String name;
-  // Mais tarde: private Symbol symbol; (tabela de símbolos)
+  private Symbol declaration = null;
 
   public Id(String name, int line, int col) {
     super(line, col);
@@ -13,6 +14,14 @@ public final class Id extends Expr {
 
   public String getName() {
     return this.name;
+  }
+
+  public Symbol getDeclaration() {
+    return this.declaration;
+  }
+
+  public void setDeclaration(Symbol declaration) {
+    this.declaration = declaration;
   }
 
   @Override

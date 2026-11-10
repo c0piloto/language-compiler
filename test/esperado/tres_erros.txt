@@ -1,0 +1,4 @@
+linha 3: 'a' já declarado neste escopo (linha 2)
+linha 4: 'b' não declarado
+linha 8: 'c' não declarado
+linha 4: a@2

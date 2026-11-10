@@ -1,0 +1,30 @@
+============================================================
+Compilando: test/programas/recursivo.txt (5 linhas)
+============================================================
+
+Fase 1: Análise léxica e sintática
+  [OK]   léxica: nenhum erro
+  [OK]   sintática: nenhum erro
+
+Fase 2: Construção da AST
+  [OK]   árvore construída
+
+  [CÓDIGO REIMPRESSO]
+    void fat(int n) {
+        if ((n > 0)) {
+            fat((n - 1));
+        }
+    }
+
+Fase 3: Análise de identificação (escopos e símbolos)
+  [OK]   3 uso(s) de nome ligado(s) à sua declaração
+  [OK]   nenhum erro de escopo
+
+------------------------------------------------------------
+Resumo
+  [OK]   Análise léxica e sintática
+  [OK]   Construção da AST
+  [OK]   Análise de identificação
+------------------------------------------------------------
+COMPILAÇÃO CONCLUÍDA SEM ERROS
+============================================================

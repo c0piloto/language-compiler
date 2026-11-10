@@ -1,0 +1,15 @@
+int x = 10;
+void f(int a) {
+    int y = a + x;
+    {
+        int x = y;
+        {
+            int z = x + a;
+        }
+        x = x + y;
+    }
+    y = x;
+}
+void main() {
+    f(x);
+}

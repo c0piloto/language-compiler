@@ -1,0 +1,12 @@
+linha 3: a@2
+linha 3: x@1
+linha 5: y@3
+linha 7: x@5
+linha 7: a@2
+linha 9: x@5
+linha 9: x@5
+linha 9: y@3
+linha 11: y@3
+linha 11: x@1
+linha 14: f@2
+linha 14: x@1

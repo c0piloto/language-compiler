@@ -1,0 +1,23 @@
+# Todos os comandos feitos e testados em um sistema Unix pelo terminal
+
+# programa válido, com a árvore e cada uso resolvido
+java -cp out language.Main test/programas/valido_sombreamento.txt --ast --usos
+
+# programa com erro sintático (a compilação aborta na fase 1)
+java -cp out language.Main test/invalido1.txt
+
+# código reimpresso, sem cores (para salvar em arquivo)
+NO_COLOR=1 java -cp out language.Main test/programas/recursivo.txt --fonte > saida.txt
+
+# mais um teste com os tres_erros
+rm -rf out && mkdir out && javac -d out $(find src -name '*.java') \
+  && java -cp out language.Main test/programas/tres_erros.txt
+
+# Teste apenas do SymbolTableTest, IdentificationTestRunner e TestRunner
+# não são chamados pela Main.java (Testes acima) pois servem apenas como testes unitários
+rm -rf out && mkdir out \
+  && javac -d out $(find src -name '*.java') \
+  && javac -cp out -d out test/IdentificationTestRunner.java test/TestRunner.java test/language/symbols/SymbolTableTest.java \
+  && java -cp out language.symbols.SymbolTableTest \
+  && java -cp out IdentificationTestRunner \
+  && java -cp out TestRunner

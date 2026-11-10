@@ -1,0 +1,6 @@
+void par(int n) {
+    impar(n);
+}
+void impar(int n) {
+    par(n);
+}

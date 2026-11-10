@@ -1,0 +1,4 @@
+linha 2: 'impar' não declarado
+linha 2: n@1
+linha 5: par@1
+linha 5: n@4
