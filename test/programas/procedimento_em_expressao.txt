@@ -1,0 +1,7 @@
+void p() {
+}
+void main() {
+    int x = p();
+    x = p() + 1;
+    p();
+}

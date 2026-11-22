@@ -1,0 +1,6 @@
+linha 5: inicializador de 'x': esperado int, veio bool
+linha 6: inicializador de 'b': esperado bool, veio int
+linha 7: operador '+' não se aplica a int e bool
+linha 8: condição de 'if' deve ser bool, mas é int
+linha 9: atribuição a 'y': esperado int, veio string
+linha 11: 'f' espera 1 argumento(s), recebeu 2

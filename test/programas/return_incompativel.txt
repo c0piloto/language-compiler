@@ -1,0 +1,12 @@
+int f() {
+    return True;
+}
+void p() {
+    return 1;
+}
+double g() {
+    return 1;
+}
+int h() {
+    return;
+}

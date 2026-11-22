@@ -1,0 +1,3 @@
+linha 4: operador '+' não se aplica a bool e int
+linha 5: operador '*' não se aplica a bool e bool
+linha 6: operador '<' não se aplica a bool e bool

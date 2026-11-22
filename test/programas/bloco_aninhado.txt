@@ -1,0 +1,11 @@
+int g = 10;
+int soma(int a) {
+    int t = a + g;
+    {
+        int u = t + a;
+        {
+            t = u + g;
+        }
+    }
+    return t;
+}

@@ -1,0 +1,10 @@
+int soma(int a, int b) {
+    return a + b;
+}
+void registra() {
+}
+void main() {
+    soma(1, 2);
+    registra();
+    int x = registra();
+}

@@ -1,0 +1,2 @@
+linha 5: 'f' é função e não pode ser usada como valor (faltam parênteses)
+linha 6: 'f' é função e não pode ser usada como valor (faltam parênteses)

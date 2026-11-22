@@ -1,0 +1,4 @@
+linha 4: operador '+' não se aplica a int e bool
+linha 5: operador '&&' não se aplica a int e bool
+linha 6: operador '-' não se aplica a bool
+linha 7: operador '!' não se aplica a int

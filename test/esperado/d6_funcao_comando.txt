@@ -1,0 +1,1 @@
+linha 9: procedimento 'registra' não retorna valor e não pode ser usado em expressão

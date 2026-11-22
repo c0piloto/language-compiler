@@ -1,0 +1,8 @@
+void main() {
+    string s = "a";
+    string t = "b";
+    string u = s + t;
+    bool b = s == t;
+    bool c = s < t;
+    s = t;
+}

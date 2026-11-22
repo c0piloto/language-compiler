@@ -1,0 +1,6 @@
+bool par(int n) {
+    return impar(n);
+}
+bool impar(int n) {
+    return par(n);
+}

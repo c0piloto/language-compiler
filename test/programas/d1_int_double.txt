@@ -1,0 +1,8 @@
+void main() {
+    double d = 1;
+    d = 2;
+    double e = d + 1;
+    int i = 1.5;
+    i = d;
+    bool b = 1 < 2.5;
+}

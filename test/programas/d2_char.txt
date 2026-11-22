@@ -1,0 +1,8 @@
+void main() {
+    char c = 'a';
+    int i = c + 1;
+    char d = 65;
+    int j = c;
+    bool b = c < 'b';
+    bool e = c == 'a';
+}

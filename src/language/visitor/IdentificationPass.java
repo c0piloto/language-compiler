@@ -8,6 +8,7 @@ import language.symbols.Category;
 import language.symbols.StackSymbolTable;
 import language.symbols.Symbol;
 import language.symbols.SymbolTable;
+import language.symbols.Type;
 
   /*
   * Identification pass: open/closes scopes, declares names and links each use Id to it's declaration
@@ -32,11 +33,16 @@ public class IdentificationPass implements Visitor<Void> {
   }
 
   // ---------- declaration (used by variables, parameters and function) ----------
-  private void declare(String name, Category category, Node node) {
+  private Symbol make(String name, Category category, Type type, Node node) {
     Symbol symbol = new Symbol(name, category, node, this.table.level());
+    symbol.setType(type);
+    return symbol;
+  }
+
+  private void declare(Symbol symbol) {
     if(!this.table.declare(symbol)) {
-      Symbol first = this.table.lookupLocal(name);
-      this.errors.add("linha " + node.getLine() + ": '" + name + "' já declarado neste escopo (linha " + first.getDeclaration().getLine() + ")");
+      Symbol first = this.table.lookupLocal(symbol.getName());
+      this.errors.add("linha " + symbol.getDeclaration().getLine() + ": '" + symbol.getName() + "' já declarado neste escopo (linha " + first.getDeclaration().getLine() + ")");
     }
   }
 
@@ -55,15 +61,21 @@ public class IdentificationPass implements Visitor<Void> {
     if (node.hasInit()) {
       node.getInit().accept(this);
     }
-    declare(node.getName(), Category.VARIABLE, node);
+    declare(make(node.getName(), Category.VARIABLE, Type.of(node.getType()), node));
     return null;
   }
   
   @Override
   public Void visitFuncDecl(FuncDecl node) {
     Category category = node.getReturnType() == TypeKind.VOID ? Category.PROCEDURE : Category.FUNCTION;
-    declare(node.getName(), category, node); // Extern scope, before openScope() (recursive)
-    
+    Symbol func = make(node.getName(), category, Type.of(node.getReturnType()), node);
+    List<Type> params = new ArrayList<>();
+    for(Param param : node.getParams()) {
+      params.add(Type.of(param.getType()));
+    }
+    func.setParamTypes(params);
+    declare(func);
+
     this.table.openScope();
     for(Param param : node.getParams()) {
       param.accept(this);
@@ -78,7 +90,7 @@ public class IdentificationPass implements Visitor<Void> {
 
   @Override
   public Void visitParam(Param node) {
-    declare(node.getName(), Category.PARAMETER, node);
+    declare(make(node.getName(), Category.PARAMETER, Type.of(node.getType()), node));
     return null;
   }
 

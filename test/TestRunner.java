@@ -32,8 +32,8 @@ import java.util.regex.Pattern;
  */
 public class TestRunner {
 
-  private static final Path DIR = Path.of("test");
-  private static final Path ESPERADO = DIR.resolve("esperado");
+  private static final Path DIR = Path.of("test", "regressao", "cp3", "programas");
+  private static final Path ESPERADO = Path.of("test", "regressao", "cp3", "esperado");
   private static final Pattern POSICAO = Pattern.compile("(\\d+):(\\d+)");
 
   private static int ok = 0;

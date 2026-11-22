@@ -7,6 +7,7 @@ import language.parser.Parser;
 import language.visitor.AstPrinter;
 import language.visitor.IdentificationPass;
 import language.visitor.SourcePrinter;
+import language.visitor.TypeChecker;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -85,7 +86,7 @@ public class Main {
       System.out.println();
       rule('-');
       System.out.println(red("COMPILAÇÃO ABORTADA") + ": o programa tem erros léxicos ou sintáticos.");
-      System.out.println("As fases 2 (AST) e 3 (identificação) não foram executadas.");
+      System.out.println("As fases 2 (AST), 3 (identificação) e 4 (tipos) não foram executadas.");
       rule('=');
       System.exit(1);
     }
@@ -131,7 +132,32 @@ public class Main {
       }
     }
 
+    // ---------------------------------------------------------------- Fase 4
+    phase(4, "Verificação de tipos");
+    TypeChecker checker = new TypeChecker();
+    result.tree().accept(checker);
+    List<String> typeErrors = checker.getErrors();
+    List<String> warnings = checker.getWarnings();
+
+    if (typeErrors.isEmpty()) {
+      ok("nenhum erro de tipo");
+    } else {
+      fail(typeErrors.size() + " erro(s) de tipo");
+      for (String e : typeErrors) {
+        System.out.println("         " + e);
+      }
+    }
+
+    if (!warnings.isEmpty()) {
+      warn(warnings.size() + " aviso(s)");
+      for (String w : warnings) {
+        System.out.println("         " + w);
+      }
+    }
+
     // ---------------------------------------------------------------- Resumo
+    int total = scopeErrors.size() + typeErrors.size();
+
     System.out.println();
     rule('-');
     System.out.println("Resumo");
@@ -142,13 +168,18 @@ public class Main {
     } else {
       fail("Análise de identificação: " + scopeErrors.size() + " erro(s)");
     }
+    if (typeErrors.isEmpty()) {
+      ok("Verificação de tipos" + (warnings.isEmpty() ? "" : " (" + warnings.size() + " aviso(s))"));
+    } else {
+      fail("Verificação de tipos: " + typeErrors.size() + " erro(s)");
+    }
     rule('-');
 
-    if (scopeErrors.isEmpty()) {
+    if (total == 0) {
       System.out.println(green("COMPILAÇÃO CONCLUÍDA SEM ERROS"));
       rule('=');
     } else {
-      System.out.println(red("COMPILAÇÃO FALHOU") + ": " + scopeErrors.size() + " erro(s) de escopo.");
+      System.out.println(red("COMPILAÇÃO FALHOU") + ": " + total + " erro(s). A geração de código não foi iniciada.");
       rule('=');
       System.exit(1);
     }
@@ -169,11 +200,15 @@ public class Main {
   }
 
   private static void ok(String msg) {
-    System.out.println("  " + green("[OK]  ") + " " + msg);
+    System.out.println("  " + green("[OK]   ") + " " + msg);
   }
 
   private static void fail(String msg) {
-    System.out.println("  " + red("[ERRO]") + " " + msg);
+    System.out.println("  " + red("[ERRO] ") + " " + msg);
+  }
+
+  private static void warn(String msg) {
+    System.out.println("  " + yellow("[AVISO]") + " " + msg);
   }
 
   private static void rule(char c) {
@@ -196,5 +231,9 @@ public class Main {
 
   private static String red(String s) {
     return COLOR ? "\u001B[31m" + s + "\u001B[0m" : s;
+  }
+
+  private static String yellow(String s) {
+    return COLOR ? "\u001B[33m" + s + "\u001B[0m" : s;
   }
 }

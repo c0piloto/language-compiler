@@ -1,0 +1,8 @@
+void main() {
+    int x;
+    int y = 1;
+    int z = x + y;
+    int w;
+    w = 2;
+    int v = w;
+}

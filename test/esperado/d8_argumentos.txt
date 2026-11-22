@@ -1,0 +1,2 @@
+linha 8: argumento 1 de 'dobra': esperado double, veio int
+linha 10: argumento 1 de 'inc': esperado int, veio double

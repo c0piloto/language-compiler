@@ -1,0 +1,4 @@
+linha 3: operador '+' não se aplica a char e int
+linha 4: inicializador de 'd': esperado char, veio int
+linha 5: inicializador de 'j': esperado int, veio char
+linha 6: operador '<' não se aplica a char e char

@@ -1,0 +1,2 @@
+linha 4: argumento 1 de 'mostra': esperado string, veio int
+linha 5: argumento 2 de 'mostra': esperado int, veio string

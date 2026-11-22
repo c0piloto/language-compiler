@@ -1,0 +1,2 @@
+linha 5: 'soma' espera 2 argumento(s), recebeu 1
+linha 6: 'soma' espera 2 argumento(s), recebeu 3

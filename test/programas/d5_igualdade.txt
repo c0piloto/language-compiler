@@ -1,0 +1,12 @@
+void main() {
+    int i = 1;
+    double d = 1.5;
+    bool b = True;
+    char c = 'a';
+    bool e1 = i == d;
+    bool e2 = b == b;
+    bool e3 = c == c;
+    bool e4 = i == b;
+    bool e5 = c != i;
+    bool e6 = b != 1;
+}

@@ -1,0 +1,11 @@
+double dobra(double x) {
+    return x * 2;
+}
+int inc(int n) {
+    return n + 1;
+}
+void main() {
+    double a = dobra(3);
+    double b = dobra(1.5);
+    int c = inc(2.5);
+}

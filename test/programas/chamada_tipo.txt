@@ -1,0 +1,6 @@
+void mostra(string t, int n) {
+}
+void main() {
+    mostra(1, 2);
+    mostra("a", "b");
+}

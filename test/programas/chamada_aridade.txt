@@ -1,0 +1,8 @@
+int soma(int a, int b) {
+    return a + b;
+}
+void main() {
+    int x = soma(1);
+    int y = soma(1, 2, 3);
+    int z = soma(1, 2);
+}

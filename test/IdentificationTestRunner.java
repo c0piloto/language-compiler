@@ -22,8 +22,8 @@ import java.util.List;
  */
 public class IdentificationTestRunner {
 
-  private static final Path PROGRAMAS = Path.of("test", "programas");
-  private static final Path ESPERADO = Path.of("test", "esperado");
+  private static final Path PROGRAMAS = Path.of("test", "regressao", "cp4", "programas");
+  private static final Path ESPERADO = Path.of("test", "regressao", "cp4", "esperado");
 
   private static final List<String> CASOS = List.of(
       "valido_sombreamento", "redeclaracao", "nao_declarado",
