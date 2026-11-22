@@ -10,4 +10,10 @@
 - **Ferramenta uitilizada:** Assistente de IA baseada em LLM (Claude).
 - **Escopo do auxílio:**
     1. Revisão gramatical do arquivo escopo-design.md
-    2. Criação rápida dos arquivos de testes .txt a partir do que foi montado por nós dentro do .md(acelerar processo tedioso de escrever vários .txt)
+    2. Criação rápida dos arquivos de testes .txt a partir do que foi montado por nós dentro do .md (acelerar processo tedioso de escrever vários .txt)
+
+# Log de Uso de IA - Checkpoint 5
+**Ferramenta utilizada:** Assistente de IA baseada em LLM (Claude).
+**Escopo do auxílio:**
+    1. Revisão gramatical do README.md
+    2. Criação rápida dos arquivos de testes do checkpoint 5, apenas os arquivos .txt, os testes unitários ("Runners") foram criados pelo grupo.
